@@ -6,7 +6,7 @@ import {
   onSnapshot, type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Product, Vendor, Order, User, Banner, Category } from "@/types";
+import type { Product, Vendor, Order, User, Banner, Category, ReturnRequest } from "@/types";
 
 // ─── Products ───────────────────────────────────────────────────────────────
 
@@ -125,6 +125,19 @@ export function listenCategories(cb: (categories: Category[]) => void): Unsubscr
   return onSnapshot(
     query(collection(db, "categories"), orderBy("order", "asc")),
     (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Category)))
+  );
+}
+
+// ─── Returns ─────────────────────────────────────────────────────────────────
+
+export async function updateReturnStatus(id: string, status: ReturnRequest["status"]): Promise<void> {
+  await updateDoc(doc(db, "returns", id), { status, updatedAt: new Date().toISOString() });
+}
+
+export function listenReturns(cb: (returns: ReturnRequest[]) => void): Unsubscribe {
+  return onSnapshot(
+    query(collection(db, "returns"), orderBy("createdAt", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as ReturnRequest)))
   );
 }
 

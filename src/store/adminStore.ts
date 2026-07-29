@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Product, Vendor, User, Order, Banner, Category } from "@/types";
+import type { Product, Vendor, User, Order, Banner, Category, ReturnRequest } from "@/types";
 import { products as seedProducts, vendors as seedVendors } from "@/data/mockData";
 import * as db from "@/lib/db";
 import type { Unsubscribe } from "firebase/firestore";
@@ -26,6 +26,7 @@ interface AdminState {
   orders: Order[];
   banners: Banner[];
   categories: Category[];
+  returns: ReturnRequest[];
   loading: boolean;
   seeded: boolean;
 
@@ -49,6 +50,7 @@ interface AdminState {
 
   saveCategory: (category: Category) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
+  updateReturnStatus: (id: string, status: ReturnRequest["status"]) => Promise<void>;
 }
 
 export const useAdminStore = create<AdminState>()(
@@ -64,6 +66,7 @@ export const useAdminStore = create<AdminState>()(
       orders: [],
       banners: [],
       categories: [],
+      returns: [],
       loading: false,
       seeded: false,
 
@@ -72,7 +75,7 @@ export const useAdminStore = create<AdminState>()(
 
       logout: () => {
         clearListeners();
-        set({ isLoggedIn: false, adminEmail: "", role: "admin", vendorId: "", products: [], vendors: [], users: [], orders: [], banners: [], categories: [] });
+        set({ isLoggedIn: false, adminEmail: "", role: "admin", vendorId: "", products: [], vendors: [], users: [], orders: [], banners: [], categories: [], returns: [] });
       },
 
       initFirestore: async () => {
@@ -94,7 +97,8 @@ export const useAdminStore = create<AdminState>()(
             db.listenOrders((orders) => set({ orders })),
             db.listenUsers((users) => set({ users })),
             db.listenBanners((banners) => set({ banners })),
-            db.listenCategories((categories) => set({ categories }))
+            db.listenCategories((categories) => set({ categories })),
+            db.listenReturns((returns) => set({ returns }))
           );
         } catch (err) {
           console.error("Firestore init failed:", err);
@@ -159,6 +163,10 @@ export const useAdminStore = create<AdminState>()(
 
       deleteCategory: async (id) => {
         await db.removeCategory(id);
+      },
+
+      updateReturnStatus: async (id, status) => {
+        await db.updateReturnStatus(id, status);
       },
     }),
     {
