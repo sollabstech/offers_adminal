@@ -83,7 +83,7 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-slate-600 text-xs">{user.phone}</td>
-                    <td className="px-4 py-4 text-center font-medium text-slate-700">{user.ordersCount}</td>
+                    <td className="px-4 py-4 text-center font-medium text-slate-700">{userOrders.length}</td>
                     <td className="px-4 py-4 text-right font-semibold text-slate-800">
                       ₹{user.totalSpent.toLocaleString()}
                     </td>
