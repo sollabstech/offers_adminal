@@ -35,9 +35,12 @@ function VendorModal({ vendor, onClose, onSave }: {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-        <h3 className="text-lg font-bold text-slate-800 mb-5">{vendor ? "Edit Vendor" : "Add New Vendor"}</h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl max-h-[90vh] flex flex-col">
+        <div className="px-6 pt-6 pb-4 border-b border-slate-100 shrink-0">
+          <h3 className="text-lg font-bold text-slate-800">{vendor ? "Edit Vendor" : "Add New Vendor"}</h3>
+        </div>
+        <div className="overflow-y-auto flex-1 px-6 py-4">
+        <form id="vendor-form" onSubmit={handleSubmit} className="space-y-4">
           {[
             { label: "Full Name *", key: "name", placeholder: "Ahmed Al-Rashid" },
             { label: "Email *", key: "email", placeholder: "vendor@company.com" },
@@ -103,15 +106,16 @@ function VendorModal({ vendor, onClose, onSave }: {
               </select>
             </div>
           </div>
-          <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose}
-              className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50">Cancel</button>
-            <button type="submit"
-              className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors">
-              {vendor ? "Save Changes" : "Add Vendor"}
-            </button>
-          </div>
         </form>
+        </div>
+        <div className="px-6 py-4 border-t border-slate-100 shrink-0 flex gap-3">
+          <button type="button" onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-50">Cancel</button>
+          <button type="submit" form="vendor-form"
+            className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-medium transition-colors">
+            {vendor ? "Save Changes" : "Add Vendor"}
+          </button>
+        </div>
       </div>
     </div>
   );

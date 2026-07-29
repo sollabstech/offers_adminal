@@ -105,3 +105,14 @@ export interface Banner {
   order: number;
   createdAt: string;
 }
+
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  imageUrl: string;
+  active: boolean;
+  order: number;
+  createdAt: string;
+}

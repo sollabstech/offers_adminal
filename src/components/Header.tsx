@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 const titles: Record<string, string> = {
@@ -10,6 +10,8 @@ const titles: Record<string, string> = {
   "/users": "Users",
   "/orders": "Orders",
   "/analytics": "Analytics",
+  "/categories": "Categories",
+  "/banners": "Banners",
   "/settings": "Settings",
   "/vendor/dashboard": "Dashboard",
   "/vendor/products": "My Products",
@@ -42,10 +44,6 @@ export default function Header() {
             className="pl-9 pr-4 py-2 text-sm bg-slate-100 rounded-lg border border-transparent focus:border-orange-300 focus:bg-white focus:outline-none w-56 transition-all"
           />
         </div>
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 hover:bg-slate-200 transition-colors">
-          <Bell size={16} className="text-slate-600" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full" />
-        </button>
       </div>
     </header>
   );
