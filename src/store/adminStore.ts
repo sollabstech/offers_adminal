@@ -3,7 +3,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Product, Vendor, User, Order, Banner, Category, ReturnRequest } from "@/types";
-import { products as seedProducts, vendors as seedVendors } from "@/data/mockData";
 import * as db from "@/lib/db";
 import type { Unsubscribe } from "firebase/firestore";
 
@@ -28,8 +27,6 @@ interface AdminState {
   categories: Category[];
   returns: ReturnRequest[];
   loading: boolean;
-  seeded: boolean;
-
   login: (email: string, role?: "admin" | "vendor", vendorId?: string) => void;
   logout: () => void;
   initFirestore: () => Promise<void>;
@@ -68,7 +65,6 @@ export const useAdminStore = create<AdminState>()(
       categories: [],
       returns: [],
       loading: false,
-      seeded: false,
 
       login: (email, role = "admin", vendorId = "") =>
         set({ isLoggedIn: true, adminEmail: email, role, vendorId }),
@@ -84,12 +80,6 @@ export const useAdminStore = create<AdminState>()(
 
         set({ loading: true });
         try {
-          // Seed Firestore with mock data on first ever run
-          if (!get().seeded) {
-            await db.seedIfEmpty(seedProducts, seedVendors);
-            set({ seeded: true });
-          }
-
           // Attach real-time listeners — store unsubscribers so we can clean up
           activeListeners.push(
             db.listenProducts((products) => set({ products })),
@@ -171,11 +161,9 @@ export const useAdminStore = create<AdminState>()(
     }),
     {
       name: "admin-store",
-      // Only persist auth state and seed flag — everything else comes live from Firestore
       partialize: (s) => ({
         isLoggedIn: s.isLoggedIn,
         adminEmail: s.adminEmail,
-        seeded: s.seeded,
         role: s.role,
         vendorId: s.vendorId,
       }),
