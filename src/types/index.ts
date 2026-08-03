@@ -19,6 +19,7 @@ export interface Vendor {
   username?: string;
   password?: string;
   address?: string;
+  gstNumber?: string;
 }
 
 export interface Product {

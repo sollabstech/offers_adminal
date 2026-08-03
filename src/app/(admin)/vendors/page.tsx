@@ -21,6 +21,7 @@ function VendorModal({ vendor, onClose, onSave }: {
     company: vendor?.company ?? "",
     category: vendor?.category ?? "",
     address: vendor?.address ?? "",
+    gstNumber: vendor?.gstNumber ?? "",
     username: vendor?.username ?? "",
     password: vendor?.password ?? "",
     status: vendor?.status ?? "pending" as Vendor["status"],
@@ -47,6 +48,7 @@ function VendorModal({ vendor, onClose, onSave }: {
             { label: "Phone", key: "phone", placeholder: "+966 50 000 0000" },
             { label: "Company *", key: "company", placeholder: "Company Name" },
             { label: "Address", key: "address", placeholder: "Riyadh, Saudi Arabia" },
+            { label: "GST Number", key: "gstNumber", placeholder: "22AAAAA0000A1Z5" },
           ].map(({ label, key, placeholder }) => (
             <div key={key}>
               <label className="block text-sm font-medium text-slate-700 mb-1">{label}</label>
@@ -145,6 +147,7 @@ export default function VendorsPage() {
         company: data.company ?? "",
         category: data.category ?? "",
         address: data.address ?? "",
+        gstNumber: data.gstNumber ?? "",
         username: data.username ?? "",
         password: data.password ?? "",
         status: data.status ?? "pending",
