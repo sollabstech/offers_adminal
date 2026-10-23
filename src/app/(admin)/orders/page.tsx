@@ -7,6 +7,7 @@ import { Search, ChevronDown, ChevronUp, Download, FileText, Table2 } from "luci
 import { useAdminStore } from "@/store/adminStore";
 import StatusBadge from "@/components/StatusBadge";
 import TableSkeleton from "@/components/TableSkeleton";
+import ShiprocketPanel from "@/components/ShiprocketPanel";
 import type { Order } from "@/types";
 
 const STATUS_OPTIONS: Order["status"][] = [
@@ -16,7 +17,7 @@ const STATUS_OPTIONS: Order["status"][] = [
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export default function OrdersPage() {
-  const { orders, loading, updateOrderStatus } = useAdminStore();
+  const { orders, products, loading, updateOrderStatus } = useAdminStore();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<Order["status"] | "all">("all");
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -307,6 +308,12 @@ export default function OrdersPage() {
                                   <span className="text-slate-500">Address</span>
                                   <span className="text-slate-700 font-medium">{order.shippingAddress}</span>
                                 </div>
+                                {order.address?.postalCode && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500">Delivery Pincode</span>
+                                    <span className="text-slate-700 font-medium">{order.address.postalCode}</span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between text-sm">
                                   <span className="text-slate-500">Payment</span>
                                   <span className="text-slate-700 font-medium">{order.paymentMethod}</span>
@@ -319,10 +326,19 @@ export default function OrdersPage() {
                                   <span className="text-slate-500">Updated</span>
                                   <span className="text-slate-700">{order.updatedAt}</span>
                                 </div>
+                                {!!order.shippingCharge && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-slate-500">Shipping charge</span>
+                                    <span className="text-slate-700 font-medium">₹{order.shippingCharge.toLocaleString()}</span>
+                                  </div>
+                                )}
                                 <div className="flex justify-between text-sm font-semibold pt-2 border-t border-slate-100">
                                   <span className="text-slate-700">Total</span>
                                   <span className="text-slate-800">₹{order.total.toLocaleString()}</span>
                                 </div>
+                              </div>
+                              <div className="mt-3">
+                                <ShiprocketPanel order={order} products={products} />
                               </div>
                             </div>
                           </div>

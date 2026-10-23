@@ -22,10 +22,25 @@ export default function LoginPage() {
     await new Promise((r) => setTimeout(r, 600));
 
     // Admin check
-    if (email === "admin@offerss.com" && password === "admin123") {
-      login(email, "admin", "");
-      router.push("/dashboard");
-      return;
+    try {
+      const res = await fetch("/api/admin-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      if (res.ok) {
+        login(email, "admin", "");
+        router.push("/dashboard");
+        return;
+      }
+      if (res.status === 503) {
+        const data = await res.json();
+        setError(data.error);
+        setLoading(false);
+        return;
+      }
+    } catch (err) {
+      console.error("Admin auth error:", err);
     }
 
     // Vendor check via Firestore
@@ -110,13 +125,6 @@ export default function LoginPage() {
               {loading ? "Signing in..." : "Sign In"}
             </button>
           </form>
-
-          <div className="mt-5 p-3 bg-slate-700/50 rounded-xl">
-            <p className="text-slate-400 text-xs text-center">
-              Admin: <span className="text-slate-300 font-medium">admin@offerss.com</span> / <span className="text-slate-300 font-medium">admin123</span>
-              <br />Vendors use credentials set by Admin
-            </p>
-          </div>
         </div>
       </div>
     </div>

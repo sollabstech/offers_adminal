@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Package, ShoppingCart, LogOut, ChevronRight, Store,
+  LayoutDashboard, Package, ShoppingCart, LogOut, ChevronRight, Store, Megaphone,
 } from "lucide-react";
 import { useAdminStore } from "@/store/adminStore";
 
@@ -11,6 +11,7 @@ const navItems = [
   { href: "/vendor/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/vendor/products", label: "My Products", icon: Package },
   { href: "/vendor/orders", label: "My Orders", icon: ShoppingCart },
+  { href: "/vendor/promotions", label: "Promote", icon: Megaphone },
 ];
 
 export default function VendorSidebar() {

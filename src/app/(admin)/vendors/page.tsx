@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Plus, Search, Pencil, Trash2, CheckCircle, XCircle, Package } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, CheckCircle, XCircle, Package, Loader2, Truck } from "lucide-react";
 import Link from "next/link";
 import { useAdminStore } from "@/store/adminStore";
 import StatusBadge from "@/components/StatusBadge";
@@ -12,7 +12,7 @@ import type { Vendor } from "@/types";
 function VendorModal({ vendor, onClose, onSave }: {
   vendor?: Vendor;
   onClose: () => void;
-  onSave: (v: Partial<Vendor> & { id?: string }) => void;
+  onSave: (v: Partial<Vendor> & { id?: string }) => void | Promise<void>;
 }) {
   const [form, setForm] = useState({
     name: vendor?.name ?? "",
@@ -22,6 +22,15 @@ function VendorModal({ vendor, onClose, onSave }: {
     category: vendor?.category ?? "",
     address: vendor?.address ?? "",
     gstNumber: vendor?.gstNumber ?? "",
+    pincode: vendor?.pincode ?? "",
+    pickupLocationNickname: vendor?.pickupLocationNickname ?? "",
+    pickupContactName: vendor?.pickupContactName ?? "",
+    pickupPhone: vendor?.pickupPhone ?? "",
+    pickupAddressLine1: vendor?.pickupAddressLine1 ?? "",
+    pickupAddressLine2: vendor?.pickupAddressLine2 ?? "",
+    pickupCity: vendor?.pickupCity ?? "",
+    pickupState: vendor?.pickupState ?? "",
+    pickupCountry: vendor?.pickupCountry ?? "India",
     username: vendor?.username ?? "",
     password: vendor?.password ?? "",
     status: vendor?.status ?? "pending" as Vendor["status"],
@@ -32,6 +41,31 @@ function VendorModal({ vendor, onClose, onSave }: {
     e.preventDefault();
     onSave({ ...form, id: vendor?.id });
     onClose();
+  };
+
+  const [registering, setRegistering] = useState(false);
+  const [registerMsg, setRegisterMsg] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+  const handleRegister = async () => {
+    if (!vendor?.id) return;
+    setRegistering(true);
+    setRegisterMsg(null);
+    try {
+      await onSave({ ...form, id: vendor.id });
+      const res = await fetch("/api/shiprocket/register-pickup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vendorId: vendor.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Failed to register pickup location");
+      set("pickupLocationNickname", data.pickupLocationNickname);
+      setRegisterMsg({ type: "success", text: `Registered as "${data.pickupLocationNickname}" on Shiprocket.` });
+    } catch (err) {
+      setRegisterMsg({ type: "error", text: err instanceof Error ? err.message : "Failed to register pickup location" });
+    } finally {
+      setRegistering(false);
+    }
   };
 
   return (
@@ -61,6 +95,120 @@ function VendorModal({ vendor, onClose, onSave }: {
               />
             </div>
           ))}
+          <div className="pt-2 border-t border-slate-100">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Shiprocket Pickup Location</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Contact Person</label>
+                <input
+                  value={form.pickupContactName}
+                  onChange={(e) => set("pickupContactName", e.target.value)}
+                  placeholder="e.g. Ahmed Al-Rashid"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Pickup Phone</label>
+                <input
+                  value={form.pickupPhone}
+                  onChange={(e) => set("pickupPhone", e.target.value)}
+                  placeholder="10-digit mobile"
+                  inputMode="numeric"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:border-orange-400 transition-colors"
+                />
+              </div>
+            </div>
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Pickup Address Line 1</label>
+              <input
+                value={form.pickupAddressLine1}
+                onChange={(e) => set("pickupAddressLine1", e.target.value)}
+                placeholder="Building, street"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400 transition-colors"
+              />
+            </div>
+            <div className="mt-3">
+              <label className="block text-sm font-medium text-slate-700 mb-1">Pickup Address Line 2</label>
+              <input
+                value={form.pickupAddressLine2}
+                onChange={(e) => set("pickupAddressLine2", e.target.value)}
+                placeholder="Area, landmark (optional)"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400 transition-colors"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-3 mt-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">City</label>
+                <input
+                  value={form.pickupCity}
+                  onChange={(e) => set("pickupCity", e.target.value)}
+                  placeholder="e.g. Delhi"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">State</label>
+                <input
+                  value={form.pickupState}
+                  onChange={(e) => set("pickupState", e.target.value)}
+                  placeholder="e.g. Delhi"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Country</label>
+                <input
+                  value={form.pickupCountry}
+                  onChange={(e) => set("pickupCountry", e.target.value)}
+                  placeholder="India"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400 transition-colors"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-3">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Pincode</label>
+                <input
+                  value={form.pincode}
+                  onChange={(e) => set("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))}
+                  placeholder="e.g. 110001"
+                  inputMode="numeric"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:outline-none focus:border-orange-400 transition-colors"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Pickup Location Nickname</label>
+                <input
+                  value={form.pickupLocationNickname}
+                  onChange={(e) => set("pickupLocationNickname", e.target.value)}
+                  placeholder="Auto-filled on register"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-orange-400 transition-colors"
+                />
+              </div>
+            </div>
+            {vendor?.id ? (
+              <>
+                <button
+                  type="button"
+                  onClick={handleRegister}
+                  disabled={registering}
+                  className="mt-3 w-full flex items-center justify-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white text-xs font-semibold rounded-lg transition-colors"
+                >
+                  {registering ? <Loader2 size={13} className="animate-spin" /> : <Truck size={13} />}
+                  {registering ? "Registering…" : "Register with Shiprocket"}
+                </button>
+                {registerMsg && (
+                  <p className={`text-xs mt-1.5 rounded-lg px-2.5 py-1.5 border ${registerMsg.type === "success" ? "text-emerald-700 bg-emerald-50 border-emerald-100" : "text-red-600 bg-red-50 border-red-100"}`}>
+                    {registerMsg.text}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-xs text-slate-400 mt-1.5">
+                Fill in the pickup address above, save this vendor, then reopen it to register the pickup location with Shiprocket.
+              </p>
+            )}
+          </div>
           <div className="pt-2 border-t border-slate-100">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">Login Credentials</p>
             <div className="grid grid-cols-2 gap-3">
@@ -124,7 +272,11 @@ function VendorModal({ vendor, onClose, onSave }: {
 }
 
 export default function VendorsPage() {
-  const { vendors, products, loading, addVendor, updateVendor, deleteVendor } = useAdminStore();
+  const { vendors, products, orders, loading, addVendor, updateVendor, deleteVendor } = useAdminStore();
+
+  const parcelCount = (vendorId: string) => {
+    return orders.filter((o) => o.shipments?.some((s) => s.vendorId === vendorId && s.status === "shipped")).length;
+  };
   const [search, setSearch] = useState("");
   const [modal, setModal] = useState<"new" | Vendor | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -148,6 +300,15 @@ export default function VendorsPage() {
         category: data.category ?? "",
         address: data.address ?? "",
         gstNumber: data.gstNumber ?? "",
+        pincode: data.pincode ?? "",
+        pickupLocationNickname: data.pickupLocationNickname ?? "",
+        pickupContactName: data.pickupContactName ?? "",
+        pickupPhone: data.pickupPhone ?? "",
+        pickupAddressLine1: data.pickupAddressLine1 ?? "",
+        pickupAddressLine2: data.pickupAddressLine2 ?? "",
+        pickupCity: data.pickupCity ?? "",
+        pickupState: data.pickupState ?? "",
+        pickupCountry: data.pickupCountry ?? "",
         username: data.username ?? "",
         password: data.password ?? "",
         status: data.status ?? "pending",
@@ -197,6 +358,7 @@ export default function VendorsPage() {
                 <th className="text-left text-slate-500 font-medium px-4 py-3">Company</th>
                 <th className="text-left text-slate-500 font-medium px-4 py-3">Category</th>
                 <th className="text-center text-slate-500 font-medium px-4 py-3">Products</th>
+                <th className="text-center text-slate-500 font-medium px-4 py-3">Parcels</th>
                 <th className="text-right text-slate-500 font-medium px-4 py-3">Revenue</th>
                 <th className="text-left text-slate-500 font-medium px-4 py-3">Joined</th>
                 <th className="text-center text-slate-500 font-medium px-4 py-3">Status</th>
@@ -218,6 +380,11 @@ export default function VendorsPage() {
                   <td className="px-4 py-4 text-slate-600">{vendor.company}</td>
                   <td className="px-4 py-4 text-slate-600">{vendor.category || "—"}</td>
                   <td className="px-4 py-4 text-center font-medium text-slate-700">{products.filter((p) => p.vendorId === vendor.id).length}</td>
+                  <td className="px-4 py-4 text-center font-medium text-slate-700">
+                    <Link href={`/vendors/${vendor.id}`} className="hover:text-orange-500 hover:underline">
+                      {parcelCount(vendor.id)}
+                    </Link>
+                  </td>
                   <td className="px-4 py-4 text-right font-semibold text-slate-800">
                     {vendor.totalRevenue > 0 ? `₹${(vendor.totalRevenue / 1000).toFixed(1)}K` : "—"}
                   </td>
@@ -260,7 +427,7 @@ export default function VendorsPage() {
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={8} className="px-6 py-12 text-center text-slate-400">No vendors found.</td></tr>
+                <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-400">No vendors found.</td></tr>
               )}
             </tbody>
           </table>

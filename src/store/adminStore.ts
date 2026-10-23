@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Product, Vendor, User, Order, Banner, Category, ReturnRequest } from "@/types";
+import type { Product, Vendor, User, Order, Banner, Category, ReturnRequest, PromotionBid } from "@/types";
 import * as db from "@/lib/db";
 import type { Unsubscribe } from "firebase/firestore";
 
@@ -26,7 +26,13 @@ interface AdminState {
   banners: Banner[];
   categories: Category[];
   returns: ReturnRequest[];
+  promotionBids: PromotionBid[];
   loading: boolean;
+  /** True once zustand/persist has finished reading localStorage — gates login redirects so a
+   *  fresh page load doesn't see the pre-hydration `isLoggedIn: false` default and bounce a
+   *  genuinely logged-in admin/vendor back to /login. */
+  hasHydrated: boolean;
+  setHasHydrated: (v: boolean) => void;
   login: (email: string, role?: "admin" | "vendor", vendorId?: string) => void;
   logout: () => void;
   initFirestore: () => Promise<void>;
@@ -64,14 +70,17 @@ export const useAdminStore = create<AdminState>()(
       banners: [],
       categories: [],
       returns: [],
+      promotionBids: [],
       loading: false,
+      hasHydrated: false,
+      setHasHydrated: (v) => set({ hasHydrated: v }),
 
       login: (email, role = "admin", vendorId = "") =>
         set({ isLoggedIn: true, adminEmail: email, role, vendorId }),
 
       logout: () => {
         clearListeners();
-        set({ isLoggedIn: false, adminEmail: "", role: "admin", vendorId: "", products: [], vendors: [], users: [], orders: [], banners: [], categories: [], returns: [] });
+        set({ isLoggedIn: false, adminEmail: "", role: "admin", vendorId: "", products: [], vendors: [], users: [], orders: [], banners: [], categories: [], returns: [], promotionBids: [] });
       },
 
       initFirestore: async () => {
@@ -88,7 +97,8 @@ export const useAdminStore = create<AdminState>()(
             db.listenUsers((users) => set({ users })),
             db.listenBanners((banners) => set({ banners })),
             db.listenCategories((categories) => set({ categories })),
-            db.listenReturns((returns) => set({ returns }))
+            db.listenReturns((returns) => set({ returns })),
+            db.listenPromotionBids((promotionBids) => set({ promotionBids }))
           );
         } catch (err) {
           console.error("Firestore init failed:", err);
@@ -167,6 +177,9 @@ export const useAdminStore = create<AdminState>()(
         role: s.role,
         vendorId: s.vendorId,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

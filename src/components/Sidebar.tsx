@@ -16,6 +16,7 @@ import {
   Image,
   Tag,
   RotateCcw,
+  Megaphone,
 } from "lucide-react";
 import { useAdminStore } from "@/store/adminStore";
 
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/vendors", label: "Vendors", icon: Store },
   { href: "/users", label: "Users", icon: Users },
   { href: "/orders", label: "Orders", icon: ShoppingCart },
+  { href: "/promotions", label: "Promotions", icon: Megaphone },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/returns", label: "Returns", icon: RotateCcw },
   { href: "/categories", label: "Categories", icon: Tag },

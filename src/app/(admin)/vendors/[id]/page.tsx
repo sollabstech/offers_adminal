@@ -3,16 +3,30 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Pencil, Mail, Phone, MapPin, Tag, Package, ExternalLink } from "lucide-react";
+import { ArrowLeft, Pencil, Mail, Phone, MapPin, Tag, Package, ExternalLink, Truck } from "lucide-react";
 import { useAdminStore } from "@/store/adminStore";
 import StatusBadge from "@/components/StatusBadge";
 
 export default function VendorDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { vendors, products } = useAdminStore();
+  const { vendors, products, orders } = useAdminStore();
 
   const vendor = vendors.find((v) => v.id === id);
   const vendorProducts = products.filter((p) => p.vendorId === id);
+  const vendorProductIds = new Set(vendorProducts.map((p) => p.id));
+
+  // Orders containing at least one of this vendor's products.
+  const vendorOrders = orders.filter((o) => o.items.some((item) => vendorProductIds.has(item.productId)));
+  const myShipmentOf = (o: (typeof vendorOrders)[number]) => o.shipments?.find((s) => s.vendorId === id);
+  const shipmentStats = {
+    shipped: vendorOrders.filter((o) => myShipmentOf(o)?.status === "shipped").length,
+    inTransit: vendorOrders.filter((o) => myShipmentOf(o)?.status === "shipped" && o.status !== "delivered").length,
+    delivered: vendorOrders.filter((o) => myShipmentOf(o)?.status === "shipped" && o.status === "delivered").length,
+    cancelled: vendorOrders.filter((o) => myShipmentOf(o)?.status === "cancelled").length,
+    notShipped: vendorOrders.filter((o) => (myShipmentOf(o)?.status ?? "not_shipped") === "not_shipped").length,
+  };
+  const shippingCollected = vendorOrders.reduce((sum, o) => sum + (myShipmentOf(o)?.finalCharge ?? 0), 0);
+  const shippingPaidToShiprocket = vendorOrders.reduce((sum, o) => sum + (myShipmentOf(o)?.shiprocketRate ?? 0), 0);
 
   if (!vendor) {
     return (
@@ -110,6 +124,44 @@ export default function VendorDetailPage() {
             <p className="text-xs text-slate-500 mt-0.5">Total Sold</p>
           </div>
         </div>
+      </div>
+
+      {/* Shipments (Shiprocket) */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Truck size={16} className="text-orange-500" />
+          <h3 className="font-semibold text-slate-800">Parcels &amp; Shipments</h3>
+          <span className="text-xs bg-slate-100 text-slate-500 rounded-full px-2 py-0.5">{vendorOrders.length} orders</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="text-center bg-slate-50 rounded-xl py-3">
+            <p className="text-2xl font-bold text-slate-700">{shipmentStats.notShipped}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Not shipped</p>
+          </div>
+          <div className="text-center bg-blue-50 rounded-xl py-3">
+            <p className="text-2xl font-bold text-blue-600">{shipmentStats.shipped}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Shipped</p>
+          </div>
+          <div className="text-center bg-amber-50 rounded-xl py-3">
+            <p className="text-2xl font-bold text-amber-600">{shipmentStats.inTransit}</p>
+            <p className="text-xs text-slate-500 mt-0.5">In transit</p>
+          </div>
+          <div className="text-center bg-emerald-50 rounded-xl py-3">
+            <p className="text-2xl font-bold text-emerald-600">{shipmentStats.delivered}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Delivered</p>
+          </div>
+          <div className="text-center bg-red-50 rounded-xl py-3">
+            <p className="text-2xl font-bold text-red-500">{shipmentStats.cancelled}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Cancelled</p>
+          </div>
+        </div>
+        {shippingCollected > 0 && (
+          <div className="mt-4 pt-4 border-t border-slate-100 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+            <span className="text-slate-500">Paid to Shiprocket: <span className="font-semibold text-slate-700">₹{shippingPaidToShiprocket.toLocaleString()}</span></span>
+            <span className="text-slate-500">Collected as delivery charge: <span className="font-semibold text-slate-700">₹{shippingCollected.toLocaleString()}</span></span>
+            <span className="text-slate-500">Delivery commission: <span className="font-semibold text-emerald-600">₹{(shippingCollected - shippingPaidToShiprocket).toLocaleString()}</span></span>
+          </div>
+        )}
       </div>
 
       {/* Products */}

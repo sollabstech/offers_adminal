@@ -7,10 +7,14 @@ import Header from "@/components/Header";
 import { useAdminStore } from "@/store/adminStore";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn, role, initFirestore, loading } = useAdminStore();
+  const { isLoggedIn, role, initFirestore, loading, hasHydrated } = useAdminStore();
   const router = useRouter();
 
   useEffect(() => {
+    // Wait for zustand/persist to finish reading localStorage before deciding
+    // to redirect — otherwise a fresh page load sees the pre-hydration
+    // isLoggedIn:false default and bounces an already-logged-in admin out.
+    if (!hasHydrated) return;
     if (!isLoggedIn) {
       router.push("/login");
       return;
@@ -20,8 +24,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
     initFirestore();
-  }, [isLoggedIn, role, router, initFirestore]);
+  }, [hasHydrated, isLoggedIn, role, router, initFirestore]);
 
+  if (!hasHydrated) return null;
   if (!isLoggedIn || role === "vendor") return null;
 
   return (

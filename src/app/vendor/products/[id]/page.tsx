@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useAdminStore } from "@/store/adminStore";
 import SpecificationsEditor from "@/components/SpecificationsEditor";
 import MultiImageUpload from "@/components/MultiImageUpload";
-import type { Product } from "@/types";
+import type { Product, DeliverySpeed, ListingType } from "@/types";
 
 export default function VendorEditProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +29,11 @@ export default function VendorEditProductPage() {
     stock: product?.stock?.toString() ?? "",
     tags: product?.tags?.join(", ") ?? "",
     status: (product?.status ?? "active") as Product["status"],
+    height: product?.height?.toString() ?? "",
+    width: product?.width?.toString() ?? "",
+    weight: product?.weight?.toString() ?? "",
+    deliverySpeed: (product?.deliverySpeed ?? "fast") as DeliverySpeed,
+    listingType: (product?.listingType ?? "sale") as ListingType,
   });
 
   // Guard: vendor can only edit their own products
@@ -67,6 +72,11 @@ export default function VendorEditProductPage() {
       images: images.length > 0 ? images : product.images,
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       specifications: Object.fromEntries(specs.filter((s) => s.key).map((s) => [s.key, s.val])),
+      height: Number(form.height) || 0,
+      width: Number(form.width) || 0,
+      weight: Number(form.weight) || 0,
+      deliverySpeed: form.deliverySpeed,
+      listingType: form.listingType,
     });
     router.push("/vendor/products");
   };
@@ -130,6 +140,46 @@ export default function VendorEditProductPage() {
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Tags</label>
             <input value={form.tags} onChange={(e) => set("tags", e.target.value)} className="input-field" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-4">
+          <h3 className="font-semibold text-slate-700 text-sm uppercase tracking-wide">Shipping &amp; Delivery</h3>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Height (cm)</label>
+              <input type="number" min="0" step="0.1" value={form.height} onChange={(e) => set("height", e.target.value)}
+                className="input-field" placeholder="0" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Width (cm)</label>
+              <input type="number" min="0" step="0.1" value={form.width} onChange={(e) => set("width", e.target.value)}
+                className="input-field" placeholder="0" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Weight (kg)</label>
+              <input type="number" min="0" step="0.01" value={form.weight} onChange={(e) => set("weight", e.target.value)}
+                className="input-field" placeholder="0" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Delivery Speed</label>
+              <select value={form.deliverySpeed} onChange={(e) => set("deliverySpeed", e.target.value)} className="input-field">
+                <option value="fast">Fast delivery</option>
+                <option value="1-day">1-day delivery</option>
+                <option value="7-day">7-day delivery</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Listing Type</label>
+              <select value={form.listingType} onChange={(e) => set("listingType", e.target.value)} className="input-field">
+                <option value="sale">Sale</option>
+                <option value="liquidation">Liquidation</option>
+              </select>
+            </div>
           </div>
         </div>
 

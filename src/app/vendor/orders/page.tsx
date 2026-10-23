@@ -7,6 +7,7 @@ import { Search, ChevronDown, ChevronUp } from "lucide-react";
 import { useAdminStore } from "@/store/adminStore";
 import StatusBadge from "@/components/StatusBadge";
 import TableSkeleton from "@/components/TableSkeleton";
+import ShiprocketPanel from "@/components/ShiprocketPanel";
 import type { Order } from "@/types";
 
 const STATUS_OPTIONS: Order["status"][] = [
@@ -146,6 +147,10 @@ export default function VendorOrdersPage() {
                               ))}
                             </div>
                             <p className="text-xs text-slate-400 mt-3">Shipping to: {order.shippingAddress}</p>
+                            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mt-4 mb-2">Shipping</p>
+                            <div className="max-w-xl">
+                              <ShiprocketPanel order={order} products={products} onlyVendorId={vendorId} audience="vendor" />
+                            </div>
                           </td>
                         </tr>
                       )}

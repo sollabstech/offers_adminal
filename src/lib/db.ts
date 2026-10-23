@@ -3,10 +3,10 @@
 import {
   collection, doc, getDocs, getDoc, setDoc, addDoc,
   updateDoc, deleteDoc, query, orderBy, serverTimestamp,
-  onSnapshot, type Unsubscribe,
+  onSnapshot, writeBatch, deleteField, type Unsubscribe,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import type { Product, Vendor, Order, User, Banner, Category, ReturnRequest } from "@/types";
+import type { Product, Vendor, Order, User, Banner, Category, ReturnRequest, PromotionBid } from "@/types";
 
 // ─── Products ───────────────────────────────────────────────────────────────
 
@@ -139,6 +139,76 @@ export function listenReturns(cb: (returns: ReturnRequest[]) => void): Unsubscri
     query(collection(db, "returns"), orderBy("createdAt", "desc")),
     (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as ReturnRequest)))
   );
+}
+
+// ─── Promotion bids (vendors pay for top placement) ─────────────────────────
+
+export function listenPromotionBids(cb: (bids: PromotionBid[]) => void): Unsubscribe {
+  return onSnapshot(
+    query(collection(db, "promotionBids"), orderBy("createdAt", "desc")),
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as PromotionBid)))
+  );
+}
+
+export async function savePromotionBid(bid: PromotionBid): Promise<void> {
+  await setDoc(doc(db, "promotionBids", bid.id), bid);
+}
+
+export async function setPromotionBidStatus(id: string, status: "rejected" | "withdrawn"): Promise<void> {
+  const now = new Date().toISOString();
+  await updateDoc(doc(db, "promotionBids", id), { status, decidedAt: now, updatedAt: now });
+}
+
+/** Approve a bid: stamps the promotion window on the bid and mirrors it onto the product the storefront reads. */
+export async function approvePromotionBid(bid: PromotionBid, rank: number, replacedBidId?: string): Promise<void> {
+  const now = new Date();
+  const endsAt = new Date(now.getTime() + bid.days * 24 * 60 * 60 * 1000).toISOString();
+  const batch = writeBatch(db);
+  batch.update(doc(db, "promotionBids", bid.id), {
+    status: "approved",
+    rank,
+    startsAt: now.toISOString(),
+    endsAt,
+    decidedAt: now.toISOString(),
+    updatedAt: now.toISOString(),
+  });
+  batch.update(doc(db, "products", bid.productId), {
+    promotedRank: rank,
+    promotedUntil: endsAt,
+    promotedBid: bid.amount,
+    promotionBidId: bid.id,
+  });
+  if (replacedBidId && replacedBidId !== bid.id) {
+    batch.update(doc(db, "promotionBids", replacedBidId), {
+      status: "ended",
+      endsAt: now.toISOString(),
+      updatedAt: now.toISOString(),
+    });
+  }
+  await batch.commit();
+}
+
+export async function setPromotionRank(bid: PromotionBid, rank: number): Promise<void> {
+  const batch = writeBatch(db);
+  batch.update(doc(db, "promotionBids", bid.id), { rank, updatedAt: new Date().toISOString() });
+  batch.update(doc(db, "products", bid.productId), { promotedRank: rank });
+  await batch.commit();
+}
+
+/** Stop a live promotion now. Pass clearProduct=false if the product no longer exists. */
+export async function endPromotion(bid: PromotionBid, clearProduct: boolean): Promise<void> {
+  const now = new Date().toISOString();
+  const batch = writeBatch(db);
+  batch.update(doc(db, "promotionBids", bid.id), { status: "ended", endsAt: now, updatedAt: now });
+  if (clearProduct) {
+    batch.update(doc(db, "products", bid.productId), {
+      promotedRank: deleteField(),
+      promotedUntil: deleteField(),
+      promotedBid: deleteField(),
+      promotionBidId: deleteField(),
+    });
+  }
+  await batch.commit();
 }
 
 // ─── Vendor credential lookup ───────────────────────────────────────────────

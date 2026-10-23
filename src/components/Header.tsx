@@ -9,6 +9,7 @@ const titles: Record<string, string> = {
   "/vendors": "Vendors",
   "/users": "Users",
   "/orders": "Orders",
+  "/promotions": "Promotions",
   "/analytics": "Analytics",
   "/categories": "Categories",
   "/banners": "Banners",
@@ -16,6 +17,7 @@ const titles: Record<string, string> = {
   "/vendor/dashboard": "Dashboard",
   "/vendor/products": "My Products",
   "/vendor/orders": "My Orders",
+  "/vendor/promotions": "Promote",
 };
 
 export default function Header() {
