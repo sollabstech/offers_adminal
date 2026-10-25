@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Zap, Eye, EyeOff, Lock, User } from "lucide-react";
+import Image from "next/image";
+import { Eye, EyeOff, Lock, User } from "lucide-react";
 import { useAdminStore } from "@/store/adminStore";
 import { findVendorByCredentials } from "@/lib/db";
 
@@ -64,9 +65,14 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-orange-500 shadow-2xl shadow-orange-500/40 mb-4">
-            <Zap size={28} className="text-white" fill="white" />
-          </div>
+          <Image
+            src="/android-chrome-192x192.png"
+            alt="Offerss"
+            width={72}
+            height={72}
+            className="mx-auto w-[72px] h-[72px] rounded-full mb-4 shadow-2xl shadow-orange-500/30"
+            priority
+          />
           <h1 className="text-3xl font-bold text-white">Offerss Admin</h1>
           <p className="text-slate-400 mt-1">Sign in to your admin panel</p>
         </div>

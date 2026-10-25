@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  LayoutDashboard, Package, ShoppingCart, LogOut, ChevronRight, Store, Megaphone,
+  LayoutDashboard, Package, ShoppingCart, LogOut, ChevronRight, Megaphone,
 } from "lucide-react";
 import { useAdminStore } from "@/store/adminStore";
 
@@ -28,9 +29,7 @@ export default function VendorSidebar() {
   return (
     <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 flex flex-col z-40">
       <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-700/50">
-        <div className="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-          <Store size={18} className="text-white" />
-        </div>
+        <Image src="/android-chrome-192x192.png" alt="Offerss" width={36} height={36} className="w-9 h-9 rounded-full shrink-0" priority />
         <div>
           <p className="text-white font-bold text-base leading-tight">Offerss</p>
           <p className="text-slate-400 text-xs">Vendor Panel</p>

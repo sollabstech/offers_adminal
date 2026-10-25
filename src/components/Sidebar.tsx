@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import NextImage from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -12,7 +13,6 @@ import {
   Settings,
   LogOut,
   ChevronRight,
-  Zap,
   Image,
   Tag,
   RotateCcw,
@@ -48,9 +48,7 @@ export default function Sidebar() {
     <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 flex flex-col z-40">
       {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-700/50">
-        <div className="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-          <Zap size={18} className="text-white" fill="white" />
-        </div>
+        <NextImage src="/android-chrome-192x192.png" alt="Offerss" width={36} height={36} className="w-9 h-9 rounded-full shrink-0" priority />
         <div>
           <p className="text-white font-bold text-base leading-tight">Offerss</p>
           <p className="text-slate-400 text-xs">Admin Panel</p>
